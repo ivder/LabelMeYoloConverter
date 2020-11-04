@@ -63,7 +63,7 @@ for json_name in json_name_list:
     for idx, line in enumerate(lines):
         if ("lineColor" in line):
             break 	#skip reading after find lineColor
-	if ("label" in line):
+        if ("label" in line):
             x1 = float(lines[idx+5].rstrip(','))
             y1 = float(lines[idx+6])
             x2 = float(lines[idx+9].rstrip(','))
