@@ -1,5 +1,5 @@
 # LabelMeYoloConverter
-Convert LabelMe Annotation Tool JSON format to YOLO text file format
+Convert LabelMe Annotation Tool JSON format to YOLO text file format. Tested for YOLOv3
 
 Put your dataset (image and JSON format) in dataset/ 
 Output will be saved in result/
