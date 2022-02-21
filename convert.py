@@ -14,17 +14,21 @@ import os
 from os import walk, getcwd
 from PIL import Image
 
+#Changed the convert function so it can extract the bounding boxes coordinates
+#for using it with Yolov5.
+
 def convert(size, box):
-    dw = 1./size[0]
-    dh = 1./size[1]
-    x = (box[0] + box[1])/2.0
-    y = (box[2] + box[3])/2.0
-    w = box[1] - box[0]
-    h = box[3] - box[2]
-    x = x*dw
-    w = w*dw
-    y = y*dh
-    h = h*dh
+    x = round((b[0] + b[1])/2, 5) # b_center_x
+    y = round((b[2] + b[3])/2, 5) #b_center_y
+    w = round((b[1] - b[0]), 5) #b_width
+    h = round((b[3] - b[2]), 5) #b_height
+
+# Normalise the co-ordinates by the dimensions of the image
+    image_w, image_h = size
+    x /= image_w #b_center_x
+    y /= image_h #b_center_y
+    w /= image_w #b_width
+    h /= image_h #b_height
     return (x,y,w,h)
     
     
