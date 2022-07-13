@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
 '''
-LabelMe JSON format -> YOLO txt format
-save dataset (학습 자료) in dataset/ 
-output will be saved in result/
-JSON format will be moved to json_backup/
-
-Finally, please manually copy text file together with image into 1 folder. (Easier to maintain)
-마지막으로 txt파일이랑 이미지파일이랑 같은 폴더에 복사하세요 (관리하기 위한 쉬움)
+This code serves to convert LabelMe JSON files to YOLO format files. It works for both polygons as well as squares. <\br>
+The code was executed on Google Colab (Jupyter Notebook). The folders were located on Google drive. <\br>
+LabelMe saves both Images and json files to one folder, in this case ../images/train. <\br>
+The code saves those JSON files to '.../json_backup' folder, deletes them from the original<\br>
+'../images/train' folder and finally adds the YOLO txt format files to the '../labels/train' folder. <\br>
+Make sure to change the directory paths.
 '''
+from google.colab import drive
+drive.mount('/content/drive', force_remount=True)
+
 
 import os
 from os import walk, getcwd
@@ -31,18 +33,25 @@ def convert(size, box):
 """-------------------------------------------------------------------""" 
 
 """ Configure Paths"""   
-mypath = "./dataset/"
-outpath = "./result/"
-json_backup ="./json_backup/"
+mypath = '/content/drive/My Drive/microplasticos/images/train'
+outpath = "/content/drive/My Drive/microplasticos/labels/train"
+json_backup ="/content/drive/My Drive/microplasticos/json_backup"
 
 wd = getcwd()
 #list_file = open('%s_list.txt'%(wd), 'w')
+
+
+'''correct .JPG to .jpg'''
+#os.rename(old_name, new_name)
+
 
 """ Get input json file list """
 json_name_list = []
 for file in os.listdir(mypath):
     if file.endswith(".json"):
         json_name_list.append(file)
+    if '.JPG' in file:
+        os.rename(mypath+'/'+file, mypath+'/'+file.strip('.JPG')+'.jpg')
     
 
 """ Process """
