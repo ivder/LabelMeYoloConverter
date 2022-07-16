@@ -79,7 +79,7 @@ for json_name in json_name_list:
         if ("lineColor" in line):
             break     #skip reading after find lineColor
         if ("label" in line):
-            idxlist=[5,9,13,17,21,25,29,33,37,41,45]
+            idxlist=[element for element in range(5,90,4)] #[5,9,13,17,21,25,29,33,37,41,45...]
             pl=list() #list of polygon points
             try:
                 for i in idxlist:
