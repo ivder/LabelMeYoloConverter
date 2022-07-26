@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
 '''
-LabelMe JSON format -> YOLO txt format
-save dataset (학습 자료) in dataset/ 
-output will be saved in result/
-JSON format will be moved to json_backup/
-
-Finally, please manually copy text file together with image into 1 folder. (Easier to maintain)
-마지막으로 txt파일이랑 이미지파일이랑 같은 폴더에 복사하세요 (관리하기 위한 쉬움)
+This code serves to convert LabelMe JSON files to YOLO format files. It works for both polygons as well as squares. <\br>
+The code was executed on Google Colab (Jupyter Notebook). The folders were located on Google drive. <\br>
+LabelMe saves both Images and json files to one folder, in this case ../images/train. <\br>
+The code saves those JSON files to '.../json_backup' folder, deletes them from the original<\br>
+'../images/train' folder and finally adds the YOLO txt format files to the '../labels/train' folder. <\br>
+Make sure to change the directory paths.
 '''
+from google.colab import drive
+drive.mount('/content/drive', force_remount=True)
+
 
 import os
 from os import walk, getcwd
@@ -31,62 +33,93 @@ def convert(size, box):
 """-------------------------------------------------------------------""" 
 
 """ Configure Paths"""   
-mypath = "./dataset/"
-outpath = "./result/"
-json_backup ="./json_backup/"
+mypath = '/content/drive/My Drive/microplasticos/images/train'
+outpath = "/content/drive/My Drive/microplasticos/labels/train"
+json_backup ="/content/drive/My Drive/microplasticos/json_backup"
 
 wd = getcwd()
 #list_file = open('%s_list.txt'%(wd), 'w')
+
+
+'''correct .JPG to .jpg'''
+#os.rename(old_name, new_name)
+
 
 """ Get input json file list """
 json_name_list = []
 for file in os.listdir(mypath):
     if file.endswith(".json"):
         json_name_list.append(file)
+    if '.JPG' in file:
+        os.rename(mypath+'/'+file, mypath+'/'+file.strip('.JPG')+'.jpg')
     
+
+
+
 
 """ Process """
 for json_name in json_name_list:
     txt_name = json_name.rstrip(".json") + ".txt"
     """ Open input text files """
-    txt_path = mypath + json_name
+    txt_path = mypath +'/' + json_name
     print("Input:" + txt_path)
     txt_file = open(txt_path, "r")
     
     """ Open output text files """
-    txt_outpath = outpath + txt_name
+    txt_outpath = outpath + '/'+ txt_name
     print("Output:" + txt_outpath)
-    txt_outfile = open(txt_outpath, "a")
+    txt_outfile = open(txt_outpath, "a+")
+
+    """ Create a label dictionary."""
+    label_dic={'fragment': 0, 'line': 1, 'organic': 2, 'pellet': 3, 'tar': 4}
 
     """ Convert the data to YOLO format """ 
-    lines = txt_file.read().split('\r\n')   #for ubuntu, use "\r\n" instead of "\n"
+    lines = txt_file.read().split() #'\r\n'  #for ubuntu, use "\r\n" instead of "\n"
     for idx, line in enumerate(lines):
         if ("lineColor" in line):
-            break 	#skip reading after find lineColor
+            break     #skip reading after find lineColor
         if ("label" in line):
-            x1 = float(lines[idx+5].rstrip(','))
-            y1 = float(lines[idx+6])
-            x2 = float(lines[idx+9].rstrip(','))
-            y2 = float(lines[idx+10])
-            cls = line[16:17]
+            idxlist=[element for element in range(5,90,4)] #[5,9,13,17,21,25,29,33,37,41,45...]
+            pl=list() #list of polygon points
+            try:
+                for i in idxlist:
+                    pl.append((float(lines[idx+i].rstrip(',')), float(lines[idx+i+1])))
+                    cls = label_dic[lines[idx+1].rstrip(',').strip('"')]
+            except:
+                pass
+            #print('pl: ',pl)
 
-	    #in case when labelling, points are not in the right order
-	    xmin = min(x1,x2)
-	    xmax = max(x1,x2)
-     	    ymin = min(y1,y2)
-	    ymax = max(y1,y2)
-            img_path = str('%s/dataset/%s.jpg'%(wd, os.path.splitext(json_name)[0]))
+            #in case when labelling, points are not in the right order
+            xmin=9999999
+            xmax=0
+            ymin=9999999
+            ymax=0
+            for (x,y) in pl:
+              if x<xmin:
+                xmin=x
+              if x>xmax:
+                xmax=x
+              if y<ymin:
+                ymin=y
+              if y>ymax:
+                ymax=y
+            img_path = str('%s/%s.jpg'%(mypath, os.path.splitext(json_name)[0]))
 
             im=Image.open(img_path)
+      
             w= int(im.size[0])
             h= int(im.size[1])
+        
+            
 
             print(w, h)
             print(xmin, xmax, ymin, ymax)
             b = (xmin, xmax, ymin, ymax)
             bb = convert((w,h), b)
+            print('CLASS', cls)
             print(bb)
-            txt_outfile.write(cls + " " + " ".join([str(a) for a in bb]) + '\n')
-
-    os.rename(txt_path,json_backup+json_name)	#move json file to backup folder
+            txt_outfile.write(str(cls) + " " + " ".join([str(a) for a in bb]) + '\n')
+           
+       
+    os.rename(txt_path,json_backup+'/'+json_name)    #move json file to backup folder
   
